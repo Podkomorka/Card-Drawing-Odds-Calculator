@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hypergeometric Calculator</title>
+
+<style>
+  :root {
+    --bg-dark: #1f2d3a;
+    --bg-panel: #2c3e50;
+    --bg-light: #ecf0f1;
+    --accent: #1abc9c;
+    --text-light: #ffffff;
+    --text-dark: #2c3e50;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 1rem;
+  }
+
+  html, body {
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 700px) {
+    .container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .panel {
+    background: var(--bg-light);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  }
+
+  .xval {
+    display: contents;
+  }
+
+  .panel-header {
+    background: linear-gradient(180deg, #34495e, #2c3e50);
+    color: var(--text-light);
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .panel-body {
+    padding: 1rem;
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .field label {
+    font-weight: 600;
+  }
+
+  .field input {
+    width: 90px;
+    padding: 0.35rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.6rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    filter: brightness(1.05);
+  }
+
+  .results p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.4rem 0;
+    font-weight: 600;
+  }
+
+  .results span {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .expected {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 2px solid #ddd;
+    font-weight: 700;
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Calculator -->
+    <div class="panel">
+      <div class="panel-header">Hypergeometric Calculator</div>
+      <div class="panel-body">
+        <div class="field">
+          <label>Deck Size:</label>
+          <input type="number" id="deck" value="60" min="1">
+        </div>
+        <div class="field">
+          <label>Copies Ran:</label>
+          <input type="number" id="copies" value="4" min="0">
+        </div>
+        <div class="field">
+          <label>Cards Drawn:</label>
+          <input type="number" id="drawn" value="7" min="0">
+        </div>
+        <div class="field">
+          <label>Odds to Have:</label>
+          <input type="number" id="target" value="1" min="0">
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="panel">
+      <div class="panel-header">Hypergeometric Results</div>
+      <div class="panel-body results">
+        <p>Odds of &lt; <span class="xval"></span>: <span id="lt">—</span></p>
+        <p>Odds of ≤ <span class="xval"></span>: <span id="lte">—</span></p>
+        <p>Odds of = <span class="xval"></span>: <span id="eq">—</span></p>
+        <p>Odds of ≥ <span class="xval"></span>: <span id="gte">—</span></p>
+        <p>Odds of &gt; <span class="xval"></span>: <span id="gt">—</span></p>
+        <div class="expected">
+          <p>Expected Value: <span id="ev">—</span></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+function comb(n, k) {
+  if (k < 0 || k > n) return 0;
+  k = Math.min(k, n - k);
+  let result = 1;
+  for (let i = 1; i <= k; i++) {
+    result *= (n - (k - i));
+    result /= i;
+  }
+  return result;
+}
+
+function hypergeom(N, K, n, x) {
+  return (comb(K, x) * comb(N - K, n - x)) / comb(N, n);
+}
+
+function calculate() {
+  const N = Number(deck.value);
+  const K = Number(copies.value);
+  const n = Number(drawn.value);
+  const X = Number(target.value);
+
+  document.querySelectorAll(".xval").forEach(el => {
+    el.textContent = X;
+  });
+
+  let pLess = 0;
+  let pEqual = 0;
+  let pGreater = 0;
+
+  for (let x = 0; x <= n; x++) {
+    const p = hypergeom(N, K, n, x);
+    if (x < X) pLess += p;
+    else if (x === X) pEqual += p;
+    else pGreater += p;
+  }
+
+  const pLTE = pLess + pEqual;
+  const pGTE = pEqual + pGreater;
+  const expected = n * (K / N);
+
+  lt.textContent  = (pLess * 100).toFixed(2) + "%";
+  lte.textContent = (pLTE * 100).toFixed(2) + "%";
+  eq.textContent  = (pEqual * 100).toFixed(2) + "%";
+  gte.textContent = (pGTE * 100).toFixed(2) + "%";
+  gt.textContent  = (pGreater * 100).toFixed(2) + "%";
+  ev.textContent  = expected.toFixed(2);
+}
+
+// auto-calc on load
+calculate();
+</script>
+</body>
+</html>
