@@ -212,6 +212,8 @@ function hypergeom(N, K, n, x) {
   return (comb(K, x) * comb(N - K, n - x)) / comb(N, n);
 }
 
+/* ---------- Forward Hypergeometric Calculator ---------- */
+
 function calculate() {
   const N = Number(deck.value);
   const K = Number(copies.value);
@@ -245,36 +247,49 @@ function calculate() {
   ev.textContent  = expected.toFixed(2);
 }
 
-// auto-calc on load
+/* ---------- Inverse Hypergeometric Calculator ---------- */
+
+function probabilityAtLeast(N, K, n, X) {
+  let p = 0;
+  for (let x = X; x <= n; x++) {
+    p += hypergeom(N, K, n, x);
+  }
+  return p;
+}
+
+function calculateInverse() {
+  const N = Number(invDeck.value);
+  const n = Number(invDrawn.value);
+  const X = Number(invTarget.value);
+  const targetProb = Number(invProb.value) / 100;
+
+  let result = "Impossible";
+
+  for (let K = 0; K <= N; K++) {
+    const p = probabilityAtLeast(N, K, n, X);
+    if (p >= targetProb) {
+      result = K;
+      break;
+    }
+  }
+
+  invResult.textContent = result;
+}
+
+/* ---------- Auto-calc & Live Updates ---------- */
+
+// forward calculator on load
 calculate();
-</script>
-<script>
-    function probabilityAtLeast(N, K, n, X) {
-        let p = 0;
-        for (let x = X; x <= n; x++) {
-            p += hypergeom(N, K, n, x);
-        }
-        return p;
-    }
 
-    function calculateInverse() {
-        const N = Number(invDeck.value);
-        const n = Number(invDrawn.value);
-        const X = Number(invTarget.value);
-        const targetProb = Number(invProb.value) / 100;
+// inverse calculator on load
+calculateInverse();
 
-        let result = "Impossible";
-
-        for (let K = 0; K <= N; K++) {
-            const p = probabilityAtLeast(N, K, n, X);
-            if (p >= targetProb) {
-                result = K;
-                break;
-            }
-        }
-
-        invResult.textContent = result;
-    }
+// live update inverse inputs
+document.querySelectorAll(
+  "#invDeck, #invDrawn, #invTarget, #invProb"
+).forEach(input => {
+  input.addEventListener("input", calculateInverse);
+});
 </script>
 </body>
 </html>
