@@ -165,6 +165,35 @@
       </div>
     </div>
 
+    <!-- Inverse Calculator -->
+    <div class="panel" style="margin-top:1rem;">
+        <div class="panel-header">Inverse Hypergeometric Calculator</div>
+        <div class="panel-body">
+            <div class="field">
+            <label>Deck Size:</label>
+            <input type="number" id="invDeck" value="60" min="1">
+            </div>
+            <div class="field">
+            <label>Cards Seen:</label>
+            <input type="number" id="invDrawn" value="7" min="0">
+            </div>
+            <div class="field">
+            <label>Desired Hits (≥):</label>
+            <input type="number" id="invTarget" value="1" min="1">
+            </div>
+            <div class="field">
+            <label>Target Probability (%):</label>
+            <input type="number" id="invProb" value="90" min="0" max="100">
+            </div>
+
+            <button onclick="calculateInverse()">Calculate Required Copies</button>
+
+            <div class="expected">
+            <p>Copies Needed: <span id="invResult">—</span></p>
+            </div>
+        </div>
+    </div>
+
   </div>
 
 <script>
@@ -218,6 +247,34 @@ function calculate() {
 
 // auto-calc on load
 calculate();
+</script>
+<script>
+    function probabilityAtLeast(N, K, n, X) {
+        let p = 0;
+        for (let x = X; x <= n; x++) {
+            p += hypergeom(N, K, n, x);
+        }
+        return p;
+    }
+
+    function calculateInverse() {
+        const N = Number(invDeck.value);
+        const n = Number(invDrawn.value);
+        const X = Number(invTarget.value);
+        const targetProb = Number(invProb.value) / 100;
+
+        let result = "Impossible";
+
+        for (let K = 0; K <= N; K++) {
+            const p = probabilityAtLeast(N, K, n, X);
+            if (p >= targetProb) {
+                result = K;
+                break;
+            }
+        }
+
+        invResult.textContent = result;
+    }
 </script>
 </body>
 </html>
