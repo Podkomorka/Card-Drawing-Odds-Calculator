@@ -276,7 +276,7 @@ function calculateInverse() {
   invResult.textContent = result;
 }
 
-/* ---------- Auto-calc & Live Updates ---------- */
+/* ---------- Auto-calc on Page Load ---------- */
 
 // forward calculator on load
 calculate();
@@ -284,12 +284,6 @@ calculate();
 // inverse calculator on load
 calculateInverse();
 
-// live update inverse inputs
-document.querySelectorAll(
-  "#invDeck, #invDrawn, #invTarget, #invProb"
-).forEach(input => {
-  input.addEventListener("input", calculateInverse);
-});
 </script>
 </body>
 </html>
